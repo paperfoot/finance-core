@@ -1,0 +1,17 @@
+[package]
+name = "finance-core"
+version = "0.1.0"
+edition = "2021"
+description = "Shared library for the Paperfoot accounting suite — money, tax, entities, and the shared SQLite schema that every finance CLI operates on."
+license = "MIT"
+repository = "https://github.com/paperfoot/finance-core"
+readme = "README.md"
+keywords = ["accounting", "finance", "money", "tax", "ledger"]
+categories = ["finance", "database"]
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+rust_decimal = { version = "1", features = ["serde-with-str"] }
+
+[dev-dependencies]
+rust_decimal_macros = "1"
