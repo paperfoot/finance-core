@@ -24,6 +24,7 @@ pub enum Jurisdiction {
 }
 
 impl Jurisdiction {
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(s: &str) -> Option<Self> {
         match s.to_lowercase().as_str() {
             "sg" | "singapore" => Some(Self::Sg),
@@ -189,7 +190,10 @@ mod tests {
     #[test]
     fn parses_aliases() {
         assert_eq!(Jurisdiction::from_str("SG"), Some(Jurisdiction::Sg));
-        assert_eq!(Jurisdiction::from_str("united-kingdom"), Some(Jurisdiction::Uk));
+        assert_eq!(
+            Jurisdiction::from_str("united-kingdom"),
+            Some(Jurisdiction::Uk)
+        );
         assert_eq!(Jurisdiction::from_str("gb"), Some(Jurisdiction::Uk));
         assert_eq!(Jurisdiction::from_str("unknown"), None);
     }

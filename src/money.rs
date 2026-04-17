@@ -55,7 +55,7 @@ fn format_thousands(n: i64) -> String {
     for (i, c) in chars.iter().enumerate() {
         out.push(*c);
         let remaining = len - i - 1;
-        if remaining > 0 && remaining % 3 == 0 {
+        if remaining > 0 && remaining.is_multiple_of(3) {
             out.push(',');
         }
     }
@@ -136,7 +136,12 @@ mod tests {
     #[test]
     fn line_discount_rate() {
         // 10 × 100 = 1000, 10% off → 900
-        let r = line_total_discounted(dec!(10), MinorUnits::from_major(100.0), Some(dec!(10)), None);
+        let r = line_total_discounted(
+            dec!(10),
+            MinorUnits::from_major(100.0),
+            Some(dec!(10)),
+            None,
+        );
         assert_eq!(r, MinorUnits::from_major(900.0));
     }
 

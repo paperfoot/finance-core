@@ -27,14 +27,16 @@ pub struct Paths {
 impl Paths {
     /// Resolve and create (if missing) the shared accounting-suite paths.
     pub fn resolve() -> Result<Self> {
-        let dirs = ProjectDirs::from("com", "paperfoot", "accounting").ok_or_else(|| {
-            CoreError::Path("could not resolve platform directories".into())
-        })?;
+        let dirs = ProjectDirs::from("com", "paperfoot", "accounting")
+            .ok_or_else(|| CoreError::Path("could not resolve platform directories".into()))?;
         let config_dir = dirs.config_dir().to_path_buf();
         let data_dir = dirs.data_local_dir().to_path_buf();
         std::fs::create_dir_all(&config_dir)?;
         std::fs::create_dir_all(&data_dir)?;
-        Ok(Self { config_dir, data_dir })
+        Ok(Self {
+            config_dir,
+            data_dir,
+        })
     }
 
     pub fn config_file(&self) -> PathBuf {

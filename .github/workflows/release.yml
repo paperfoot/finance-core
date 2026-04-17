@@ -1,0 +1,19 @@
+name: release
+
+# finance-core is a library — no binary artifacts. On every v* tag push we
+# publish to crates.io. Consumer CLIs (invoice-cli et al.) then pick up the
+# new version via their own Dependabot + release pipelines.
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  crates-io:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Publish
+        run: cargo publish --locked --token ${{ secrets.CRATES_IO_TOKEN }}
