@@ -1,6 +1,6 @@
 [package]
 name = "finance-core"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 description = "Shared library for the Paperfoot accounting suite — money, tax, entities, and the shared SQLite schema that every finance CLI operates on."
 license = "MIT"

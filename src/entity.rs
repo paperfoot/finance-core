@@ -48,6 +48,13 @@ pub struct Issuer {
     /// Filesystem path to a logo image (PNG/SVG/JPG). Rendered in template
     /// header when set.
     pub logo_path: Option<String>,
+    /// Default directory for `invoices render` output when `--out` is
+    /// omitted. `~/` is expanded at read time by the consumer CLI.
+    pub default_output_dir: Option<String>,
+    /// Default notes auto-populated into new invoices when `--notes` is
+    /// omitted. Free-form multi-line text (payment terms, reverse-charge
+    /// disclaimers, bank-fee notices, …).
+    pub default_notes: Option<String>,
 }
 
 /// One row of the rendered payment block. Parsed from `Issuer::bank_details`

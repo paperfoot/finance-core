@@ -635,5 +635,95 @@ Not building any of these. Revisit only if the business materially changes:
 
 ---
 
+## Appendix A — invoice-cli follow-up work (added 2026-04-18)
+
+Done in v0.5.0 / finance-core 0.3.0:
+
+- ✅ Per-issuer default PDF output directory (`issuer edit --output-dir ...`)
+- ✅ PDF archive on every render (`<data_dir>/rendered/<year>/<number>.pdf`)
+- ✅ Per-issuer default notes with auto-inheritance on new invoices
+- ✅ Currency ↔ symbol auto-linking (`--currency GBP` → `£` automatically)
+- ✅ Invoice-level currency override with symbol re-derivation when it
+  differs from the issuer's default
+
+**Deferred to a future session** — big enough to deserve their own commit
++ test + release round. Roughly in the order I'd tackle them if asked:
+
+1. **Multi-bank-account per issuer.** Today's `bank_details` is one text
+   block per issuer. A company with SGD + GBP + USD accounts needs each
+   invoice to pick the right account by currency. Fix: new
+   `bank_accounts` table (issuer_id, slug, currency, bank_details,
+   is_default) + `issuer bank add/list/set-default` subcommand +
+   automatic selection at invoice creation time based on the invoice's
+   currency, with `--bank-account <slug>` manual override.
+
+2. **Logo portability via the `attachments` table.** Current `logo_path`
+   is a filesystem string that breaks on machine moves and CI. Already
+   planned as part of expense-cli scope — but can arrive earlier as a
+   pure invoice-cli refactor: `issuer set-logo <path>` hashes the image,
+   stores at `<data_dir>/attachments/<sha>.<ext>`, sets `logo_sha` on
+   the issuer. Typst template reads the sha-named file.
+
+3. **`tax_registrations` as a proper table.** Replaces today's boolean
+   `tax_registered` + single `tax_id` with `(issuer_id, jurisdiction,
+   number, effective_from)`. Lets Paperfoot carry both a SG-GST number
+   (if registered in the future) AND a UK-VAT number in one row each.
+   Invoice picks the right one based on the invoice's tax context.
+
+4. **Structured client address.** `country_code`, `city`, `postcode`,
+   `street_lines[]` — enables "all UK clients" queries and template
+   localisation ("Attn:" → German "z.H.").
+
+5. **Template localisation.** Per-invoice `--language en|de|fr|ja`
+   overlays a dictionary (Rechnung / Total / Date / …). Typst already
+   supports per-locale dicts — plumb them in + add a `lang` field to
+   the invoice.
+
+6. **Audit log.** `audit_events` table logging every CRUD against
+   invoices + issuers + clients. `invoice audit <number>` replays the
+   history. Compliance gold, cheap to implement.
+
+7. **Deposit / milestone / pro-forma workflow.** `invoices new
+   --kind pro-forma` produces a non-sequential informational doc;
+   `invoices new --deposit 25%` creates a partial invoice linked back
+   to the master. Milestone splits handled as multiple linked invoices.
+
+8. **Recurring / subscription billing.** `invoices recurring add
+   --template 2026-0003 --monthly --next-run 2026-05-01`. Matching
+   daemon command (`invoice daemon run-recurring`) materialises the
+   next batch into real invoices. Simple cron.
+
+9. **Default notes library.** Named note templates per issuer:
+   `notes-template add reverse-charge-uk "…"`, then `invoices new
+   --notes-template reverse-charge-uk`. Avoids retyping boilerplate
+   while still allowing per-invoice overrides.
+
+10. **Number-series flexibility.** Strictly-sequential-across-years
+    format for certain jurisdictions; `issuer edit --number-format
+    "INV-{seq:06}"` already supports custom formats, but seq-reset
+    semantics need a per-issuer toggle.
+
+## Appendix B — general edge-case principles
+
+Surfaced during the today's design conversation — worth remembering:
+
+- **Defaults that work for the first user case rarely scale.** The
+  IBAN-centric bank fields worked for EU users, broke for SG. The
+  `currency` field on issuer "works" for single-currency businesses,
+  breaks for cross-border. Every field defaulted from a single country
+  is a future bug.
+- **Boolean flags that conflate multiple states.** `tax_registered:
+  bool` couldn't capture "not SG-GST-registered AND not UK-VAT-
+  registered AND might register for UK VAT later". A table with rows
+  per registration scales; a boolean doesn't.
+- **Paths are fragile.** Filesystem paths (logos, PDFs) break when
+  the user moves machines or runs from CI. Content-addressed blobs or
+  DB-stored content is portable.
+- **Outputs without archives lose audit trail.** `/tmp/*.pdf` is dev,
+  not production. Every artefact with legal or financial weight needs
+  an immutable copy alongside the mutable one the user interacts with.
+
+---
+
 _This doc lives at `finance-core/docs/proposal-next-clis.md`. Update in
 place when scope changes._

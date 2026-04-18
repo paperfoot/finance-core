@@ -62,6 +62,34 @@ fn format_thousands(n: i64) -> String {
     out
 }
 
+/// Map an ISO 4217 currency code to its conventional display symbol.
+/// Returns the code itself as fallback for unknown currencies — callers
+/// can still override via `Issuer::symbol` if they need something exotic.
+pub fn currency_symbol(code: &str) -> &str {
+    match code.to_uppercase().as_str() {
+        "SGD" => "S$",
+        "USD" => "$",
+        "GBP" => "£",
+        "EUR" => "€",
+        "JPY" => "¥",
+        "CNY" | "RMB" => "¥",
+        "HKD" => "HK$",
+        "AUD" => "A$",
+        "NZD" => "NZ$",
+        "CAD" => "C$",
+        "CHF" => "CHF",
+        "INR" => "₹",
+        "KRW" => "₩",
+        "THB" => "฿",
+        "MYR" => "RM",
+        "IDR" => "Rp",
+        "PHP" => "₱",
+        "VND" => "₫",
+        "AED" => "AED",
+        _ => "",
+    }
+}
+
 /// Compute line total in minor units: qty * unit_price.
 pub fn line_total(qty: Decimal, unit_price: MinorUnits) -> MinorUnits {
     let up = unit_price.as_decimal();
@@ -167,5 +195,16 @@ mod tests {
             Some(MinorUnits::from_major(999.0)),
         );
         assert_eq!(r, MinorUnits(0));
+    }
+
+    #[test]
+    fn currency_symbols_common() {
+        assert_eq!(currency_symbol("SGD"), "S$");
+        assert_eq!(currency_symbol("GBP"), "£");
+        assert_eq!(currency_symbol("eur"), "€");
+        assert_eq!(currency_symbol("USD"), "$");
+        assert_eq!(currency_symbol("JPY"), "¥");
+        // Unknown currency falls back to empty; caller supplies explicit symbol
+        assert_eq!(currency_symbol("XYZ"), "");
     }
 }
